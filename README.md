@@ -1,1 +1,0 @@
-# vms-with-selfhost-integration-runtime
