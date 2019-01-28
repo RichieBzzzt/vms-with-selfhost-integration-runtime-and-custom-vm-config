@@ -125,6 +125,7 @@
     "networkSecurityGroupName": "[concat(parameters('IntegrationRuntimeName'), 'nsg')]",
     "vmTemplateLink": "[concat(parameters('_artifactsLocation'), 'nested/VMtemplate.json',parameters('_artifactsLocationSasToken'))]",
     "irInstallTemplateLink": "[concat(parameters('_artifactsLocation'), 'nested/IRInstall.json',parameters('_artifactsLocationSasToken'))]",
+    "baInstallTemplateLink": "[concat(parameters('_artifactsLocation'), 'nested/BAInstall.json',parameters('_artifactsLocationSasToken'))]",
     "IRtemplateLink": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('existingDataFactoryVersion'), 'IRtemplate.json',parameters('_artifactsLocationSasToken'))]",
     "subnetId": "[resourceId(parameters('existingVnetResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('existingVirtualNetworkName'), parameters('existingSubnetInYourVnet'))]",
     "scriptURL": "[concat(parameters('_artifactsLocation'), 'scripts/gatewayInstall.ps1',parameters('_artifactsLocationSasToken'))]",
@@ -268,30 +269,54 @@
       }
     },
     {
-      "name": "CustomScript",
-      "type": "extensions",
-      "location": "[resourceGroup().location]",
-      "apiVersion": "2015-05-01-preview",
+      "apiVersion": "2015-01-01",
+      "name": "[concat('BAInstalltemplate-', copyIndex())]",
+      "type": "Microsoft.Resources/deployments",
       "dependsOn": [
-        "vmcopy", "irinstallcopy"
+        "vmcopy",
+        "ircopy"
       ],
       "copy": {
-        "name": "vstsinstallcopy",
+        "name": "bainstallcopy",
         "count": "[parameters('NodeCount')]",
         "mode": "serial"
       },
       "properties": {
-        "publisher": "Microsoft.Compute",
-        "type": "CustomScriptExtension",
-        "typeHandlerVersion": "1.4",
-        "settings": {
-          "fileUris": [
-            "[variables('buildAgentScriptURL')]"
-          ],
-          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -Command .\\InstallVSTSAgent.ps1 -vstsAccount ', parameters('vstsAccount'), ' -personalAccessToken ', parameters('personalAccessToken'), ' -AgentName ', take(concat('vm',copyIndex(),'-', variables('prefix')), 15), ' -PoolName ', parameters('poolName'), ' -runAsAutoLogon ', parameters('enableAutologon'), ' -vmAdminUserName ', parameters('adminUserName'), ' -vmAdminPassword ', parameters('adminPassword'))]"
+        "mode": "Incremental",
+        "templateLink": {
+          "uri": "[variables('baInstallTemplateLink')]",
+          "contentVersion": "1.0.0.0"
+        },
+        "parameters": {
+          "vstsAccount": {
+            "value": "[variables('vstsAccount')]"
+          },
+          "personalaccesstoken": {
+            "value": "[variables('personalaccesstoken')]"
+          },
+          "virtualMachineName": {
+            "value": "[take(concat('vm',copyIndex(),'-', variables('prefix')), 15)]"
+          },
+          "existingVnetLocation": {
+            "value": "[parameters('existingVnetLocation')]"
+          },
+          "poolname": {
+            "value": "[parameters('poolname')]"
+          },
+          "enableAutologon": {
+            "value": "[parameters('enableAutologon')]"
+          },
+          "adminUserName": {
+            "value": "[parameters('adminUserName')]"
+          },
+          "adminPassword": {
+            "value": "[parameters('adminPassword')]"
+          },
+          "BuildAgentScriptUrl": {
+            "value": "[variables('BuildAgentScriptUrl')]"
+          }
         }
       }
     }
-
   ]
 }
