@@ -267,15 +267,6 @@
         }
       }
     },
-//vstsaccount --need to add
-//personalaccesstoken --need to add
-//poolname --need to add
-//vmane --exists
-
-//vmadminuername --exists
-//vmadminpassword --exists
-
-
     {
       "name": "CustomScript",
       "type": "extensions",
