@@ -348,12 +348,3 @@ else
 Pop-Location
 
 Trace-Log "Agent install output: $LASTEXITCODE"
-
-Trace-Log "Installing PoshSSDTBuildDeploy from PowerShell Gallery..."
-
-Install-PackageProvider -Name NuGet -Force
-Install-Module PoshSSDTBuildDeploy -Force
-Trace-Log "PoshSSDTBuildDeploy Install Output: $LASTEXITCODE"
-
-Trace-Log "Exiting..."
-
