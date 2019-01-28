@@ -55,7 +55,7 @@ function Trace-Log([string] $msg)
 
 function Run-Process([string] $process, [string] $arguments)
 {
-	Write-Verbose "Run-Process: $process $arguments"
+	Trace-Log "Run-Process: $process $arguments"
 	
 	$errorFile = "$env:tmp\tmp$pid.err"
 	$outFile = "$env:tmp\tmp$pid.out"
@@ -174,6 +174,7 @@ function Register-Gateway([string] $instanceKey)
 
 function PrepMachineForAutologon () {
     # Create a PS session for the user to trigger the creation of the registry entries required for autologon
+    Trace-Log "Prepping machine for auto logon"
     $computerName = "localhost"
     $password = ConvertTo-SecureString $vmAdminPassword -AsPlainText -Force
     if ($vmAdminUserName.Split("\").Count -eq 2)
@@ -185,7 +186,7 @@ function PrepMachineForAutologon () {
     {
       $domain = $Env:ComputerName
       $userName = $vmAdminUserName
-      Write-Verbose "Username constructed to use for creating a PSSession: $domain\\$userName"
+      Trace-Log "Username constructed to use for creating a PSSession: $domain\\$userName"
     }
    
     $credentials = New-Object System.Management.Automation.PSCredential("$domain\\$userName", $password)
@@ -211,7 +212,7 @@ function PrepMachineForAutologon () {
       catch 
       {
         # Ignore the failure to create the drive and go ahead with trying to set the agent up
-        Write-Warning "Moving ahead with agent setup as the script failed to create HKU drive necessary for checking if the registry entry for the user's SId exists.\n$_"
+        Trace-Log "Moving ahead with agent setup as the script failed to create HKU drive necessary for checking if the registry entry for the user's SId exists.\n$_"
       }
     }
   
@@ -230,7 +231,7 @@ function PrepMachineForAutologon () {
         if (!(Test-Path "HKU:\\$securityId\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run"))
         {
           New-Item -Path "HKU:\\$securityId\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run" -Force
-          Write-Host "Created the registry entry path required to enable autologon."
+          Trace-Log "Created the registry entry path required to enable autologon."
         }
         
         break
@@ -244,7 +245,7 @@ function PrepMachineForAutologon () {
   
     if ($timeout -lt 0)
     {
-      Write-Warning "Failed to find the registry entry for the SId of the user, this is required to enable autologon. Trying to start the agent anyway."
+      Trace-Log "Failed to find the registry entry for the SId of the user, this is required to enable autologon. Trying to start the agent anyway."
     }
 }
 
@@ -261,36 +262,36 @@ Install-Gateway $gwPath
 Register-Gateway $gatewayKey
 
 
-Write-Verbose "InstallingBuildAgent" -verbose
+Trace-Log "InstallingBuildAgent"
 
 $currentLocation = Split-Path -parent $MyInvocation.MyCommand.Definition
-Write-Verbose "Current folder: $currentLocation" -verbose
+Trace-Log "Current folder: $currentLocation"
 
 #Create a temporary directory where to download from VSTS the agent package (vsts-agent.zip) and then launch the configuration.
 $agentTempFolderName = Join-Path $env:temp ([System.IO.Path]::GetRandomFileName())
 New-Item -ItemType Directory -Force -Path $agentTempFolderName
-Write-Verbose "Temporary Agent download folder: $agentTempFolderName" -verbose
+Trace-Log "Temporary Agent download folder: $agentTempFolderName"
 
 $serverUrl = "https://$VSTSAccount.visualstudio.com"
-Write-Verbose "Server URL: $serverUrl" -verbose
+Trace-Log "Server URL: $serverUrl"
 
 $retryCount = 3
 $retries = 1
-Write-Verbose "Downloading Agent install files" -verbose
+Trace-Log "Downloading Agent install files"
 do
 {
   try
   {
-    Write-Verbose "Trying to get download URL for latest VSTS agent release..."
+    Trace-Log "Trying to get download URL for latest VSTS agent release..."
     $latestReleaseDownloadUrl = "https://vstsagentpackage.azureedge.net/agent/2.126.0/vsts-agent-win-x64-2.126.0.zip"
     Invoke-WebRequest -Uri $latestReleaseDownloadUrl -Method Get -OutFile "$agentTempFolderName\agent.zip"
-    Write-Verbose "Downloaded agent successfully on attempt $retries" -verbose
+    Trace-Log "Downloaded agent successfully on attempt $retries"
     break
   }
   catch
   {
     $exceptionText = ($_ | Out-String).Trim()
-    Write-Verbose "Exception occured downloading agent: $exceptionText in try number $retries" -verbose
+    Trace-Log "Exception occured downloading agent: $exceptionText in try number $retries"
     $retries++
     Start-Sleep -Seconds 30 
   }
@@ -305,28 +306,28 @@ New-Item -ItemType Directory -Force -Path $agentInstallationPath
 # Create a folder for the build work
 New-Item -ItemType Directory -Force -Path (Join-Path $agentInstallationPath $WorkFolder)
 
-Write-Verbose "Extracting the zip file for the agent" -verbose
+Trace-Log "Extracting the zip file for the agent"
 $destShellFolder = (new-object -com shell.application).namespace("$agentInstallationPath")
 $destShellFolder.CopyHere((new-object -com shell.application).namespace("$agentTempFolderName\agent.zip").Items(),16)
 
 # Removing the ZoneIdentifier from files downloaded from the internet so the plugins can be loaded
 # Don't recurse down _work or _diag, those files are not blocked and cause the process to take much longer
-Write-Verbose "Unblocking files" -verbose
+Trace-Log "Unblocking files"
 Get-ChildItem -Recurse -Path $agentInstallationPath | Unblock-File | out-null
 
 # Retrieve the path to the config.cmd file.
 $agentConfigPath = [System.IO.Path]::Combine($agentInstallationPath, 'config.cmd')
-Write-Verbose "Agent Location = $agentConfigPath" -Verbose
+Trace-Log "Agent Location = $agentConfigPath"
 if (![System.IO.File]::Exists($agentConfigPath))
 {
-    Write-Error "File not found: $agentConfigPath" -Verbose
+    Trace-Log "File not found: $agentConfigPath"
     return
 }
 
 # Call the agent with the configure command and all the options (this creates the settings file) without prompting
 # the user or blocking the cmd execution
 
-Write-Verbose "Configuring agent" -Verbose
+Trace-Log "Configuring agent"
 
 # Set the current directory to the agent dedicated one previously created.
 Push-Location -Path $agentInstallationPath
@@ -346,22 +347,22 @@ else
 
 Pop-Location
 
-Write-Verbose "Agent install output: $LASTEXITCODE" -Verbose
+Trace-Log "Agent install output: $LASTEXITCODE"
 
-Write-Verbose "Installing PoshSSDTBuildDeploy from PowerShell Gallery..." -Verbose
+Trace-Log "Installing PoshSSDTBuildDeploy from PowerShell Gallery..."
 
 Install-PackageProvider -Name NuGet -Force
 Install-Module PoshSSDTBuildDeploy -Force
 
-Write-Verbose "Installing Azure RM from PowerShell Gallery..." -Verbose
+Trace-Log "Installing Azure RM from PowerShell Gallery..."
 
 Install-PackageProvider -Name NuGet -Force
 Install-Module AzureRM -Force
 
-Write-Verbose "Installing Azure RM Event Hub from PowerShell Gallery..." -Verbose
+Trace-Log "Installing Azure RM Event Hub from PowerShell Gallery..."
 
 Install-PackageProvider -Name NuGet -Force
 Install-Module -Name AzureRM.EventHub -Force
 
-Write-Verbose "Exiting InstallVSTSAgent.ps1" -Verbose
+Trace-Log "Exiting InstallVSTSAgent.ps1"
 
