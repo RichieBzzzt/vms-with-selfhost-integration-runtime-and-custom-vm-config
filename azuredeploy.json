@@ -129,7 +129,7 @@
     "IRtemplateLink": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('existingDataFactoryVersion'), 'IRtemplate.json',parameters('_artifactsLocationSasToken'))]",
     "subnetId": "[resourceId(parameters('existingVnetResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('existingVirtualNetworkName'), parameters('existingSubnetInYourVnet'))]",
     "scriptURL": "[concat(parameters('_artifactsLocation'), 'scripts/gatewayInstall.ps1',parameters('_artifactsLocationSasToken'))]",
-    "BuildAgentScriptUrl": "[concat(parameters('_artifactsLocation'),'/InstallVSTSAgent.ps1')]"
+    "BuildAgentScriptUrl": "[concat(parameters('_artifactsLocation'),'scripts/InstallVSTSAgent.ps1')]"
   },
   "resources": [
     {
@@ -274,7 +274,7 @@
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "vmcopy",
-        "ircopy"
+        "irinstallcopy"
       ],
       "copy": {
         "name": "bainstallcopy",
