@@ -1,9 +1,10 @@
 
 Param(
 
-    [Parameter(Mandatory=$true)] $BaTemplateFile = 'azuredeploy.json',
-    [Parameter(Mandatory=$true)] $BaTemplateParametersFile = 'azuredeploy.parameters.json',
-    [Parameter(Mandatory=$true)] $ResourceGroupLocation = 'North Europe',
+    [Parameter(Mandatory=$false)] $BaTemplateFile = 'azuredeploy.json',
+    [Parameter(Mandatory=$false)] $BaTemplateParametersFile = 'azuredeploy.parameters.json',
+    [Parameter(Mandatory=$false)] $ResourceGroupLocation = 'North Europe',
+    [Parameter(Mandatory=$true)] $ResourceGroupName,
     [Parameter(Mandatory=$true)] $existingDataFactoryName,
     [Parameter(Mandatory=$true)] $existingDataFactoryResourceGroup,
     [Parameter(Mandatory=$true)] $existingDataFactoryVersion,
@@ -20,11 +21,11 @@ Param(
 	[Parameter(Mandatory=$true)] $PoolName
 )
 if ([string]::IsNullOrEmpty($(Get-AzureRmContext).Account)) {
-    Login-AzureRmAccount
+    Add-AzureRmAccount
 }
 
 $PersonalAccessToken = ConvertTo-SecureString "$PersonalAccessToken" -AsPlainText -Force
-$AdminPassword = ConvertTo-SecureString "$vmAdminPassword" -AsPlainText -Force
+$AdminPassword = ConvertTo-SecureString "$AdminPassword" -AsPlainText -Force
 
 $OptionalParameters = New-Object -TypeName Hashtable
 

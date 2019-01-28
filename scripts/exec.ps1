@@ -353,16 +353,7 @@ Trace-Log "Installing PoshSSDTBuildDeploy from PowerShell Gallery..."
 
 Install-PackageProvider -Name NuGet -Force
 Install-Module PoshSSDTBuildDeploy -Force
+Trace-Log "PoshSSDTBuildDeploy Install Output: $LASTEXITCODE"
 
-Trace-Log "Installing Azure RM from PowerShell Gallery..."
-
-Install-PackageProvider -Name NuGet -Force
-Install-Module AzureRM -Force
-
-Trace-Log "Installing Azure RM Event Hub from PowerShell Gallery..."
-
-Install-PackageProvider -Name NuGet -Force
-Install-Module -Name AzureRM.EventHub -Force
-
-Trace-Log "Exiting InstallVSTSAgent.ps1"
+Trace-Log "Exiting..."
 
