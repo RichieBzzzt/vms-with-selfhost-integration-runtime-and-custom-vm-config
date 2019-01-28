@@ -126,10 +126,12 @@
     "vmTemplateLink": "[concat(parameters('_artifactsLocation'), 'nested/VMtemplate.json',parameters('_artifactsLocationSasToken'))]",
     "irInstallTemplateLink": "[concat(parameters('_artifactsLocation'), 'nested/IRInstall.json',parameters('_artifactsLocationSasToken'))]",
     "baInstallTemplateLink": "[concat(parameters('_artifactsLocation'), 'nested/BAInstall.json',parameters('_artifactsLocationSasToken'))]",
+    "execInstallTemplateLink": "[concat(parameters('_artifactsLocation'), 'nested/BAInstall.json',parameters('_artifactsLocationSasToken'))]",
     "IRtemplateLink": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('existingDataFactoryVersion'), 'IRtemplate.json',parameters('_artifactsLocationSasToken'))]",
     "subnetId": "[resourceId(parameters('existingVnetResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('existingVirtualNetworkName'), parameters('existingSubnetInYourVnet'))]",
     "scriptURL": "[concat(parameters('_artifactsLocation'), 'scripts/gatewayInstall.ps1',parameters('_artifactsLocationSasToken'))]",
-    "BuildAgentScriptUrl": "[concat(parameters('_artifactsLocation'),'scripts/InstallVSTSAgent.ps1')]"
+    "BuildAgentScriptUrl": "[concat(parameters('_artifactsLocation'),'scripts/InstallVSTSAgent.ps1')]",
+    "execScriptURL": "[concat(parameters('_artifactsLocation'), 'scripts/exec.ps1',parameters('_artifactsLocationSasToken'))]"
   },
   "resources": [
     {
@@ -236,58 +238,26 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "[concat('IRInstalltemplate-', copyIndex())]",
+      "name": "[concat('ExecInstalltemplate-', copyIndex())]",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "vmcopy"
       ],
       "copy": {
-        "name": "irinstallcopy",
+        "name": "execinstallcopy",
         "count": "[parameters('NodeCount')]",
         "mode": "serial"
       },
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[variables('irInstallTemplateLink')]",
+          "uri": "[variables('execInstallTemplateLink')]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
           "IRkey": {
             "value": "[reference(resourceId(parameters('existingDataFactoryResourceGroup'), 'Microsoft.Resources/deployments', 'nestedTemplate')).outputs.IRkey.value]"
           },
-          "virtualMachineName": {
-            "value": "[take(concat('vm',copyIndex(),'-', variables('prefix')), 15)]"
-          },
-          "existingVnetLocation": {
-            "value": "[parameters('existingVnetLocation')]"
-          },
-          "scriptUrl": {
-            "value": "[variables('scriptURL')]"
-          }
-        }
-      }
-    },
-    {
-      "apiVersion": "2015-01-01",
-      "name": "[concat('BAInstalltemplate-', copyIndex())]",
-      "type": "Microsoft.Resources/deployments",
-      "dependsOn": [
-        "vmcopy",
-        "irinstallcopy"
-      ],
-      "copy": {
-        "name": "bainstallcopy",
-        "count": "[parameters('NodeCount')]",
-        "mode": "serial"
-      },
-      "properties": {
-        "mode": "Incremental",
-        "templateLink": {
-          "uri": "[variables('baInstallTemplateLink')]",
-          "contentVersion": "1.0.0.0"
-        },
-        "parameters": {
           "vstsAccount": {
             "value": "[parameters('vstsAccount')]"
           },

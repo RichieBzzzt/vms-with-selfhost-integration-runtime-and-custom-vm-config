@@ -1,0 +1,82 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "IRkey": {
+      "type": "string"
+    },
+    "vstsAccount": {
+      "type": "string",
+      "metadata": {
+        "description": "The Visual Studio Team Services account name, that is, the first part of your VSTSAccount.visualstudio.com"
+      }
+    },
+    "personalAccessToken": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The personal access token to connect to VSTS"
+      }
+    },
+    "virtualMachineName": {
+      "type": "string"
+    },
+    "existingVnetLocation": {
+      "type": "string"
+    },
+    "poolName": {
+      "type": "string",
+      "defaultValue": "Default",
+      "metadata": {
+        "description": "The Visual Studio Team Services build agent pool for this build agent to join. Use 'Default' if you don't have a separate pool."
+      }
+    },
+    "enableAutologon": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable autologon to run the build agent in interactive mode that can sustain machine reboots.<br>Set this to true if the agents will be used to run UI tests."
+      }
+    },
+    "adminUserName": {
+      "type": "string",
+      "metadata": {
+        "description": "User name for the virtual machine"
+      }
+    },
+    "adminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password for the virtual machine"
+      }
+    },
+    "BuildAgentScriptUrl": {
+      "type": "string"
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(parameters('virtualMachineName'), '/' ,parameters('virtualMachineName'), 'installBA')]",
+      "apiVersion": "2017-03-30",
+      "location": "[parameters('existingVnetLocation')]",
+      "tags": {
+        "vmname": "[parameters('virtualMachineName')]"
+      },
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "CustomScriptExtension",
+        "typeHandlerVersion": "1.7",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[parameters('BuildAgentScriptUrl')]"
+          ]
+        },
+        "protectedSettings": {
+          "commandToExecute": "[concat('powershell.exe -ExecutionPolicy Unrestricted -File exec.ps1 -gatewayKey ', parameters('IRkey'), ' -vstsAccount ', parameters('vstsAccount'), ' -personalAccessToken ', parameters('personalAccessToken'), ' -AgentName ', parameters('virtualMachineName'), ' -PoolName ', parameters('poolName'), ' -runAsAutoLogon ', parameters('enableAutologon'), ' -vmAdminUserName ', parameters('adminUserName'), ' -vmAdminPassword ', parameters('adminPassword'))]"
+        }
+      }
+    }
+  ]
+}
