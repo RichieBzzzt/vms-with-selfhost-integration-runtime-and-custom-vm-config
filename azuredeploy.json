@@ -289,10 +289,10 @@
         },
         "parameters": {
           "vstsAccount": {
-            "value": "[variables('vstsAccount')]"
+            "value": "[parameters('vstsAccount')]"
           },
           "personalaccesstoken": {
-            "value": "[variables('personalaccesstoken')]"
+            "value": "[parameters('personalaccesstoken')]"
           },
           "virtualMachineName": {
             "value": "[take(concat('vm',copyIndex(),'-', variables('prefix')), 15)]"
