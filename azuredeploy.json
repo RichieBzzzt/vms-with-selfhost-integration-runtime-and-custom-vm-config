@@ -282,8 +282,8 @@
           "adminPassword": {
             "value": "[parameters('adminPassword')]"
           },
-          "BuildAgentScriptUrl": {
-            "value": "[variables('BuildAgentScriptUrl')]"
+          "execScriptURL": {
+            "value": "[variables('execScriptURL')]"
           }
         }
       }
