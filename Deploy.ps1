@@ -4,6 +4,7 @@ Param(
     [Parameter(Mandatory=$false)] $BaTemplateFile = 'azuredeploy.json',
     [Parameter(Mandatory=$false)] $BaTemplateParametersFile = 'azuredeploy.parameters.json',
     [Parameter(Mandatory=$false)] $ResourceGroupLocation = 'North Europe',
+    [Parameter(Mandatory=$true)] $prefix,
     [Parameter(Mandatory=$true)] $ResourceGroupName,
     [Parameter(Mandatory=$true)] $existingDataFactoryName,
     [Parameter(Mandatory=$true)] $existingDataFactoryResourceGroup,
@@ -29,6 +30,8 @@ $AdminPassword = ConvertTo-SecureString "$AdminPassword" -AsPlainText -Force
 
 $OptionalParameters = New-Object -TypeName Hashtable
 
+
+$OptionalParameters["resourcePrefix"] = $prefix
 $OptionalParameters["existingDataFactoryName"] = $existingDataFactoryName
 $OptionalParameters["existingDataFactoryResourceGroup"] = $existingDataFactoryResourceGroup
 $OptionalParameters["existingDataFactoryVersion"] = $existingDataFactoryVersion

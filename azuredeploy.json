@@ -38,6 +38,12 @@
         "description": "the node count is between 1 and 4."
       }
     },
+    "resourcePrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "prefix for the virtual machines"
+      }
+    },
     "adminUserName": {
       "type": "string",
       "metadata": {
@@ -120,7 +126,7 @@
       "-",
       "_"
     ],
-    "prefix": "[split(parameters('IntegrationRuntimeName'), variables('delimiters'))[0]]",
+    "prefix": "[toLower(parameters('resourcePrefix'))]",
     "storageAccountName": "[take(concat(toLower(variables('prefix')), uniquestring(resourceGroup().id, parameters('IntegrationRuntimeName'))), 24)]",
     "networkSecurityGroupName": "[concat(parameters('IntegrationRuntimeName'), 'nsg')]",
     "vmTemplateLink": "[concat(parameters('_artifactsLocation'), 'nested/VMtemplate.json',parameters('_artifactsLocationSasToken'))]",
