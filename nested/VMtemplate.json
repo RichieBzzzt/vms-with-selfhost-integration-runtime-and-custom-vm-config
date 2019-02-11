@@ -12,12 +12,10 @@
       "type": "securestring"
     },
     "vmSize": {
-      "type": "string",
-      "defaultValue": "Standard_F4"
+      "type": "string"
     },
     "osDiskSizeInGB": {
-      "type": "int",
-      "defaultValue": "127"
+      "type": "int"
     },
     "existingVnetLocation": {
       "type": "string"

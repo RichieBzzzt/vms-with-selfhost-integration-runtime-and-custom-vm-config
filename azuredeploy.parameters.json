@@ -26,12 +26,6 @@
     "adminPassword": {
       "value": "GEN-PASSWORD"
     },
-    "vmSize": {
-      "value": "Standard_F4"
-    },
-    "osDiskSizeInGB": {
-      "value": "127"
-    },
     "existingVirtualNetworkName":{
       "value": "vnet-01"
     },
