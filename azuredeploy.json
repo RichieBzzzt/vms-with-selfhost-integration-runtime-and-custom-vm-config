@@ -38,6 +38,13 @@
         "description": "the node count is between 1 and 4."
       }
     },
+    "resourcePrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "prefix for the virtual machines"
+      },
+      "defaultValue": "[uniqueString(subscription().subscriptionId)]"
+    },
     "adminUserName": {
       "type": "string",
       "metadata": {
@@ -49,6 +56,20 @@
       "metadata": {
         "description": "Password for the virtual machine"
       }
+    },
+    "vmSize": {
+      "type": "string",
+      "metadata": {
+        "description": "Size of the VM you want the Integration Runtime to be. Default is 'Standard_F4'."
+      },
+      "defaultValue": "Standard_F4"
+    },
+    "osDiskSizeInGB": {
+      "type": "int",
+      "metadata": {
+        "description": "Size in GB of OS Disk. Default is 127GB, which is maximum size."
+      },
+      "defaultValue": "127"
     },
     "existingVirtualNetworkName": {
       "type": "string",
@@ -79,7 +100,7 @@
       "metadata": {
         "description": "The base URI where artifacts required by this template are located."
       },
-      "defaultValue": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vms-with-selfhost-integration-runtime/"
+      "defaultValue": "https://raw.githubusercontent.com/richiebzzzt/vms-with-selfhost-integration-runtime-and-custom-vm-config/master/"
     },
     "_artifactsLocationSasToken": {
       "type": "securestring",
@@ -94,7 +115,7 @@
       "-",
       "_"
     ],
-    "prefix": "[split(parameters('IntegrationRuntimeName'), variables('delimiters'))[0]]",
+    "prefix": "[toLower(parameters('resourcePrefix'))]",
     "storageAccountName": "[take(concat(toLower(variables('prefix')), uniquestring(resourceGroup().id, parameters('IntegrationRuntimeName'))), 24)]",
     "networkSecurityGroupName": "[concat(parameters('IntegrationRuntimeName'), 'nsg')]",
     "vmTemplateLink": "[concat(parameters('_artifactsLocation'), 'nested/VMtemplate.json',parameters('_artifactsLocationSasToken'))]",
@@ -187,6 +208,12 @@
           },
           "adminUserName": {
             "value": "[parameters('adminUserName')]"
+          },
+          "vmSize": {
+            "value": "[parameters('vmSize')]"
+          },
+          "osDiskSizeInGB": {
+            "value": "[parameters('osDiskSizeInGB')]"
           },
           "adminPassword": {
             "value": "[parameters('adminPassword')]"
