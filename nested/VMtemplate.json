@@ -82,7 +82,7 @@
       ],
       "properties": {
         "hardwareProfile": {
-          "vmSize": "[parameters('existingVnetLocation')]"
+          "vmSize": "[parameters('vmSize')]"
         },
         "osProfile": {
           "computerName": "[parameters('virtualMachineName')]",
