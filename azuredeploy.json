@@ -38,12 +38,6 @@
         "description": "the node count is between 1 and 4."
       }
     },
-    "resourcePrefix": {
-      "type": "string",
-      "metadata": {
-        "description": "prefix for the virtual machines"
-      }
-    },
     "adminUserName": {
       "type": "string",
       "metadata": {
@@ -85,7 +79,7 @@
       "metadata": {
         "description": "The base URI where artifacts required by this template are located."
       },
-      "defaultValue": "https://raw.githubusercontent.com/sabinio/vms-with-selfhost-integration-runtime/master/"
+      "defaultValue": "https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/101-vms-with-selfhost-integration-runtime/"
     },
     "_artifactsLocationSasToken": {
       "type": "securestring",
@@ -93,32 +87,6 @@
         "description": "The sasToken required to access _artifactsLocation.  When the template is deployed using the accompanying scripts, a sasToken will be automatically generated."
       },
       "defaultValue": ""
-    },
-    "vstsAccount": {
-      "type": "string",
-      "metadata": {
-        "description": "The Visual Studio Team Services account name, that is, the first part of your VSTSAccount.visualstudio.com"
-      }
-    },
-    "personalAccessToken": {
-      "type": "securestring",
-      "metadata": {
-        "description": "The personal access token to connect to VSTS"
-      }
-    },
-    "poolName": {
-      "type": "string",
-      "defaultValue": "default",
-      "metadata": {
-        "description": "The Visual Studio Team Services build agent pool for this build agent to join. Use 'Default' if you don't have a separate pool."
-      }
-    },
-    "enableAutologon": {
-      "type": "bool",
-      "defaultValue": true,
-      "metadata": {
-        "description": "Enable autologon to run the build agent in interactive mode that can sustain machine reboots.<br>Set this to true if the agents will be used to run UI tests."
-      }
     }
   },
   "variables": {
@@ -126,14 +94,14 @@
       "-",
       "_"
     ],
-    "prefix": "[toLower(parameters('resourcePrefix'))]",
+    "prefix": "[split(parameters('IntegrationRuntimeName'), variables('delimiters'))[0]]",
     "storageAccountName": "[take(concat(toLower(variables('prefix')), uniquestring(resourceGroup().id, parameters('IntegrationRuntimeName'))), 24)]",
     "networkSecurityGroupName": "[concat(parameters('IntegrationRuntimeName'), 'nsg')]",
     "vmTemplateLink": "[concat(parameters('_artifactsLocation'), 'nested/VMtemplate.json',parameters('_artifactsLocationSasToken'))]",
-    "execInstallTemplateLink": "[concat(parameters('_artifactsLocation'), 'nested/execInstall.json',parameters('_artifactsLocationSasToken'))]",
+    "irInstallTemplateLink": "[concat(parameters('_artifactsLocation'), 'nested/IRInstall.json',parameters('_artifactsLocationSasToken'))]",
     "IRtemplateLink": "[concat(parameters('_artifactsLocation'), 'nested/', parameters('existingDataFactoryVersion'), 'IRtemplate.json',parameters('_artifactsLocationSasToken'))]",
     "subnetId": "[resourceId(parameters('existingVnetResourceGroupName'), 'Microsoft.Network/virtualNetworks/subnets', parameters('existingVirtualNetworkName'), parameters('existingSubnetInYourVnet'))]",
-    "execScriptURL": "[concat(parameters('_artifactsLocation'), 'scripts/exec.ps1',parameters('_artifactsLocationSasToken'))]"
+    "scriptURL": "[concat(parameters('_artifactsLocation'), 'scripts/gatewayInstall.ps1',parameters('_artifactsLocationSasToken'))]"
   },
   "resources": [
     {
@@ -240,31 +208,25 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "[concat('ExecInstalltemplate-', copyIndex())]",
+      "name": "[concat('IRInstalltemplate-', copyIndex())]",
       "type": "Microsoft.Resources/deployments",
       "dependsOn": [
         "vmcopy"
       ],
       "copy": {
-        "name": "execinstallcopy",
+        "name": "irinstallcopy",
         "count": "[parameters('NodeCount')]",
         "mode": "serial"
       },
       "properties": {
         "mode": "Incremental",
         "templateLink": {
-          "uri": "[variables('execInstallTemplateLink')]",
+          "uri": "[variables('irInstallTemplateLink')]",
           "contentVersion": "1.0.0.0"
         },
         "parameters": {
           "IRkey": {
             "value": "[reference(resourceId(parameters('existingDataFactoryResourceGroup'), 'Microsoft.Resources/deployments', 'nestedTemplate')).outputs.IRkey.value]"
-          },
-          "vstsAccount": {
-            "value": "[parameters('vstsAccount')]"
-          },
-          "personalaccesstoken": {
-            "value": "[parameters('personalaccesstoken')]"
           },
           "virtualMachineName": {
             "value": "[take(concat('vm',copyIndex(),'-', variables('prefix')), 15)]"
@@ -272,20 +234,8 @@
           "existingVnetLocation": {
             "value": "[parameters('existingVnetLocation')]"
           },
-          "poolname": {
-            "value": "[parameters('poolname')]"
-          },
-          "enableAutologon": {
-            "value": "[parameters('enableAutologon')]"
-          },
-          "adminUserName": {
-            "value": "[parameters('adminUserName')]"
-          },
-          "adminPassword": {
-            "value": "[parameters('adminPassword')]"
-          },
-          "execScriptURL": {
-            "value": "[variables('execScriptURL')]"
+          "scriptUrl": {
+            "value": "[variables('scriptURL')]"
           }
         }
       }
